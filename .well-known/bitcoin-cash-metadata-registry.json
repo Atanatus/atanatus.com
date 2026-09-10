@@ -1,0 +1,76 @@
+{
+    "$schema":  "https://cashtokens.org/bcmr-v2.schema.json",
+    "version":  {
+                    "major":  0,
+                    "minor":  2,
+                    "patch":  0
+                },
+    "latestRevision":  "2026-09-10T16:34:54.626Z",
+    "registryIdentity":  "3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b",
+    "identities":  {
+                       "3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b":  {
+                                                                                                "2026-09-10T12:54:29.723Z":  {
+                                                                                                                                 "name":  "Atanatus",
+                                                                                                                                 "description":  "Atanatus is a BCH-native utility and participation token designed to complement Bitcoin Cash within the ATANATUS ecosystem.",
+                                                                                                                                 "token":  {
+                                                                                                                                               "category":  "3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b",
+                                                                                                                                               "symbol":  "ATAN",
+                                                                                                                                               "decimals":  8
+                                                                                                                                           },
+                                                                                                                                 "extensions":  {
+                                                                                                                                                    "atanatus":  {
+                                                                                                                                                                     "network":  "main",
+                                                                                                                                                                     "maximumSupplyAtan":  "21000000",
+                                                                                                                                                                     "maximumSupplyBaseUnits":  "2100000000000000",
+                                                                                                                                                                     "founderAllocationAtan":  "1000000",
+                                                                                                                                                                     "founderAllocationBaseUnits":  "100000000000000",
+                                                                                                                                                                     "protocolReserveAtan":  "20000000",
+                                                                                                                                                                     "protocolReserveBaseUnits":  "2000000000000000",
+                                                                                                                                                                     "allFungibleSupplyCreatedAtGenesis":  "true",
+                                                                                                                                                                     "postGenesisFungibleSupplyIncreaseForbidden":  "true",
+                                                                                                                                                                     "mintingCapabilityOutputAllowed":  "false",
+                                                                                                                                                                     "nftGenesisOutputAllowed":  "false",
+                                                                                                                                                                     "categoryDerivation":  "TXID_OF_SPENT_VOUT_0",
+                                                                                                                                                                     "categoryStatus":  "BOUND_MAINNET_CONFIRMED",
+                                                                                                                                                                     "identityMotto":  "NON OMNIS MORIAR",
+                                                                                                                                                                     "identityMottoAttribution":  "Horatius, Carmina III.30"
+                                                                                                                                                                 }
+                                                                                                                                                }
+                                                                                                                             },
+                                                                                                "2026-09-10T16:34:54.626Z":  {
+                                                                                                                                 "name":  "Atanatus",
+                                                                                                                                 "description":  "Atanatus is a BCH-native utility and participation token designed to complement Bitcoin Cash within the ATANATUS ecosystem.",
+                                                                                                                                 "uris":  {
+                                                                                                                                              "icon":  "https://atanatus.com/ATAN_LOGO_OFICIAL.png",
+                                                                                                                                              "web":  "https://atanatus.com/",
+                                                                                                                                              "registry":  "https://atanatus.com/.well-known/bitcoin-cash-metadata-registry.json",
+                                                                                                                                              "github":  "https://github.com/Atanatus/atanatus.com"
+                                                                                                                                          },
+                                                                                                                                 "token":  {
+                                                                                                                                               "category":  "3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b",
+                                                                                                                                               "symbol":  "ATAN",
+                                                                                                                                               "decimals":  8
+                                                                                                                                           },
+                                                                                                                                 "extensions":  {
+                                                                                                                                                    "atanatus":  {
+                                                                                                                                                                     "network":  "main",
+                                                                                                                                                                     "maximumSupplyAtan":  "21000000",
+                                                                                                                                                                     "maximumSupplyBaseUnits":  "2100000000000000",
+                                                                                                                                                                     "founderAllocationAtan":  "1000000",
+                                                                                                                                                                     "founderAllocationBaseUnits":  "100000000000000",
+                                                                                                                                                                     "protocolReserveAtan":  "20000000",
+                                                                                                                                                                     "protocolReserveBaseUnits":  "2000000000000000",
+                                                                                                                                                                     "allFungibleSupplyCreatedAtGenesis":  "true",
+                                                                                                                                                                     "postGenesisFungibleSupplyIncreaseForbidden":  "true",
+                                                                                                                                                                     "mintingCapabilityOutputAllowed":  "false",
+                                                                                                                                                                     "nftGenesisOutputAllowed":  "false",
+                                                                                                                                                                     "categoryDerivation":  "TXID_OF_SPENT_VOUT_0",
+                                                                                                                                                                     "categoryStatus":  "BOUND_MAINNET_CONFIRMED",
+                                                                                                                                                                     "identityMotto":  "NON OMNIS MORIAR",
+                                                                                                                                                                     "identityMottoAttribution":  "Horatius, Carmina III.30"
+                                                                                                                                                                 }
+                                                                                                                                                }
+                                                                                                                             }
+                                                                                            }
+                   }
+}
