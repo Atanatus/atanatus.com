@@ -1,101 +1,84 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SENTINEL — ATANATUS</title>
+  <title>SENTINEL — how to verify</title>
   <link rel="icon" href="/ATAN_LOGO_OFICIAL.png">
   <style>
     body{margin:0;background:#050505;color:#f5f5f5;font-family:Arial,Helvetica,sans-serif}
-    main{max-width:880px;margin:auto;padding:48px 22px}
-    h1{letter-spacing:.18em;font-weight:600}
+    main{max-width:820px;margin:auto;padding:48px 22px}
+    h1{letter-spacing:.16em}
+    h2{margin-top:36px;color:#8d5cff;font-weight:600}
     .latin{color:#8d5cff;font-family:Georgia,serif;font-style:italic;letter-spacing:.12em}
     .muted{color:#bdbdbd}
-    a{color:#c5aaff}
-    code{color:#c5aaff;word-break:break-all}
-    .card{border:1px solid #444;padding:18px 16px;margin:16px 0}
-    .ok{color:#8d5cff}
-    .warn{color:#bdbdbd}
-    dt{color:#bdbdbd;margin-top:10px}
-    dd{margin:4px 0 0}
+    a,code{color:#c5aaff}
+    code{word-break:break-all}
+    .card{border:1px solid #444;padding:16px;margin:16px 0}
+    ol,ul{line-height:1.55}
+    li{margin:8px 0}
   </style>
 </head>
 <body>
 <main>
   <h1>SENTINEL</h1>
   <p class="latin">NON OMNIS MORIAR</p>
-  <p class="muted">Máquina autónoma de profit realizado. No es un bot de compra discrecional de ATAN.</p>
+  <p>Sentinel is a local ATANATUS machine. It earns USDC through small rotations on Binance Convert, converts that profit to BCH and, later, will use that BCH on Cauldron to <strong>hold ATAN</strong> or <strong>LP ATAN</strong> in fixed batches.</p>
+  <p class="muted">It is not a person buying “whenever they feel like it.” If you see 5 identical purchases, that is the machine's batch size.</p>
 
   <div class="card">
-    <strong>Compras ATAN por esta máquina:</strong>
-    <div id="atan">0</div>
-    <p class="muted">Deshabilitado hasta documentar el puente en público.</p>
+    <strong>Current status</strong>
+    <ul>
+      <li>ATAN purchases made by Sentinel: <strong>0</strong></li>
+      <li>BCH transfers to Cauldron made by Sentinel: <strong>0</strong></li>
+      <li>Current product: profit → BCH on Binance Spot (policy BCH_100)</li>
+      <li>Next on-chain use, once activated: alternating HOLD / LP transfers</li>
+    </ul>
   </div>
 
+  <h2>Data to verify</h2>
   <div class="card">
-    <dl>
-      <dt>Policy</dt><dd id="policy">—</dd>
-      <dt>Supervisor</dt><dd id="sup">—</dd>
-      <dt>Profit producido (USDC)</dt><dd id="produced">—</dd>
-      <dt>Pendiente de empaquetar</dt><dd id="pending">—</dd>
-      <dt>Tesorería BCH</dt><dd id="bch">—</dd>
-      <dt>Próximo lote on-chain</dt><dd id="next">HOLD</dd>
-      <dt>Destino Cauldron</dt><dd><code>qregcetfxf475kzvj0t0aeks9szvpy0r0yrmxue4ea</code></dd>
-      <dt>Umbral retiro (est.)</dt><dd>mín ~0.002 BCH + fee ~0.0002 BCH · red nativa</dd>
-    </dl>
+    <ul>
+      <li>Cauldron / buyer wallet:<br><code>qregcetfxf475kzvj0t0aeks9szvpy0r0yrmxue4ea</code></li>
+      <li>Network: native Bitcoin Cash (not BEP20, not ERC20)</li>
+      <li>ATAN token category / authbase:<br><code>3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b</code></li>
+      <li>Identity: <a href="https://atanatus.com/token.html">atanatus.com/token.html</a></li>
+      <li>Current internal batch: 0.01 USDC → BCH</li>
+      <li>Future on-chain batches: intentionally repeated sizes</li>
+    </ul>
   </div>
 
-<div class="card">
-  <strong>Decisiones</strong>
-  <pre id="decisions"></pre>
-</div>
-<div class="card">
-  <strong>Usabilidad económica</strong>
-  <pre id="econ"></pre>
-</div>
-<div class="card">
-  <strong>Envíos Cauldron</strong>
-  <pre id="sends">ninguno</pre>
-</div>
-<div class="card">
-  <strong>Trades ATAN</strong>
-  <pre id="atanTrades">0</pre>
-</div>
-<div class="card">
-  <strong>Últimos eventos de profit</strong>
-  <pre id="ledger"></pre>
-</div>
-  
-  <div class="card">
-    <p>Por qué verás tamaños repetidos: el motor trabaja en lotes fijos (ahora 0.01 USDC → BCH). Cuando existan compras ATAN, serán el mismo patrón mecánico, no entradas “a ojo”.</p>
-    <p class="muted">Capital operativo ≠ profit ≠ tesorería BCH ≠ ATAN hold ≠ ATAN LP.</p>
-  </div>
+  <h2>If you see identical purchases on Cauldron</h2>
+  <ol>
+    <li>Open a BCH explorer (for example <a href="https://www.blockchair.com/bitcoin-cash">Blockchair</a> or the one used by Cauldron).</li>
+    <li>Paste the cashaddr <code>qregcetfxf475kzvj0t0aeks9szvpy0r0yrmxue4ea</code>.</li>
+    <li>Verify that the transactions come from that address, not another one.</li>
+    <li>Check the token: the ATAN category shown above, not a clone.</li>
+    <li>If the amounts are similar, that is Sentinel's batch size (odd HOLD / even LP), not five discretionary purchases.</li>
+    <li>LP: in addition to the swap, there will be a small Cauldron ATAN+BCH pool owned by that wallet. It will be listed on Cauldron / the pools API for that address.</li>
+  </ol>
+  <p class="muted">Until this page lists a specific txid, any ATAN purchase is <em>not</em> from Sentinel.</p>
 
-  <p class="muted">Identidad del token: <a href="https://atanatus.com/token.html">atanatus.com/token.html</a></p>
-  <pre id="raw" class="muted"></pre>
+  <h2>How to verify a BCH transfer (when one exists)</h2>
+  <ol>
+    <li>This page will publish: date, net amount, txid, BCH network.</li>
+    <li>Open the txid in the explorer.</li>
+    <li>The destination must be the cashaddr shown above.</li>
+    <li>The amount will be treasury minus the Binance fee (~0.0002 BCH, minimum withdrawal ~0.002 BCH).</li>
+  </ol>
+
+  <h2>What cannot be seen from outside</h2>
+  <p>The micro-rotations inside Binance (Convert USDC → asset → USDC) leave no on-chain trace. Only the <em>result</em> that exits as BCH and then reaches the cashaddr can be externally verified. Sentinel does not publish API keys or operating capital.</p>
+
+  <h2>Fixed rules</h2>
+  <ul>
+    <li>Profit ≠ deposit. Only confirmed closing USDC counts.</li>
+    <li>There are no discretionary ATAN purchases.</li>
+    <li>HOLD and LP alternate by complete transfer, not based on intraday discretion.</li>
+    <li>If a batch does not match this page, do not attribute it to the machine.</li>
+  </ul>
+
+  <p class="muted">Policy cutoff: 12 Sep 2026. ATAN buys = 0. Withdrawals = 0.</p>
 </main>
-<script>
-fetch('snapshot.json',{cache:'no-store'})
-  .then(r=>r.json())
-  .then(s=>{
-    document.getElementById('atan').textContent = s.atanBuys;
-    document.getElementById('policy').textContent = (s.decisions && s.decisions.policy) || s.policy || '—';
-    document.getElementById('sup').textContent = ((s.supervisor && s.supervisor.status) || '') + ' ' +
-      (s.supervisor && s.supervisor.running) + '/' + (s.supervisor && s.supervisor.expected);
-    document.getElementById('produced').textContent = s.treasury && s.treasury.producedUsdc;
-    document.getElementById('pending').textContent = s.treasury && s.treasury.pendingUsdc;
-    document.getElementById('bch').textContent = s.treasury && s.treasury.bchTreasury;
-    document.getElementById('next').textContent = s.nextLot || 'HOLD';
-    document.getElementById('decisions').textContent = JSON.stringify(s.decisions,null,2);
-    document.getElementById('econ').textContent = JSON.stringify(s.economics,null,2);
-    document.getElementById('sends').textContent = (s.sends && s.sends.length) ? JSON.stringify(s.sends,null,2) : 'ninguno';
-    document.getElementById('atanTrades').textContent = (s.atanTrades && s.atanTrades.length) ? JSON.stringify(s.atanTrades,null,2) : '0';
-    document.getElementById('ledger').textContent = (s.ledgerTail || []).join('\n');
-    document.getElementById('raw').textContent = JSON.stringify(s,null,2);
-  })
-  .catch(()=>{
-    document.getElementById('atan').textContent = 'snapshot no publicado aún';
-  });
-</script>
 </body>
 </html>
