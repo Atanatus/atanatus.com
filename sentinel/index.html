@@ -45,6 +45,27 @@
     </dl>
   </div>
 
+<div class="card">
+  <strong>Decisiones</strong>
+  <pre id="decisions"></pre>
+</div>
+<div class="card">
+  <strong>Usabilidad económica</strong>
+  <pre id="econ"></pre>
+</div>
+<div class="card">
+  <strong>Envíos Cauldron</strong>
+  <pre id="sends">ninguno</pre>
+</div>
+<div class="card">
+  <strong>Trades ATAN</strong>
+  <pre id="atanTrades">0</pre>
+</div>
+<div class="card">
+  <strong>Últimos eventos de profit</strong>
+  <pre id="ledger"></pre>
+</div>
+  
   <div class="card">
     <p>Por qué verás tamaños repetidos: el motor trabaja en lotes fijos (ahora 0.01 USDC → BCH). Cuando existan compras ATAN, serán el mismo patrón mecánico, no entradas “a ojo”.</p>
     <p class="muted">Capital operativo ≠ profit ≠ tesorería BCH ≠ ATAN hold ≠ ATAN LP.</p>
@@ -58,15 +79,23 @@ fetch('snapshot.json',{cache:'no-store'})
   .then(r=>r.json())
   .then(s=>{
     document.getElementById('atan').textContent = s.atanBuys;
-    document.getElementById('policy').textContent = s.policy;
-    document.getElementById('sup').textContent = (s.supervisor.status||'')+' '+s.supervisor.running+'/'+s.supervisor.expected;
-    document.getElementById('produced').textContent = s.treasury.producedUsdc;
-    document.getElementById('pending').textContent = s.treasury.pendingUsdc;
-    document.getElementById('bch').textContent = s.treasury.bchTreasury;
-    document.getElementById('next').textContent = s.nextLot;
+    document.getElementById('policy').textContent = (s.decisions && s.decisions.policy) || s.policy || '—';
+    document.getElementById('sup').textContent = ((s.supervisor && s.supervisor.status) || '') + ' ' +
+      (s.supervisor && s.supervisor.running) + '/' + (s.supervisor && s.supervisor.expected);
+    document.getElementById('produced').textContent = s.treasury && s.treasury.producedUsdc;
+    document.getElementById('pending').textContent = s.treasury && s.treasury.pendingUsdc;
+    document.getElementById('bch').textContent = s.treasury && s.treasury.bchTreasury;
+    document.getElementById('next').textContent = s.nextLot || 'HOLD';
+    document.getElementById('decisions').textContent = JSON.stringify(s.decisions,null,2);
+    document.getElementById('econ').textContent = JSON.stringify(s.economics,null,2);
+    document.getElementById('sends').textContent = (s.sends && s.sends.length) ? JSON.stringify(s.sends,null,2) : 'ninguno';
+    document.getElementById('atanTrades').textContent = (s.atanTrades && s.atanTrades.length) ? JSON.stringify(s.atanTrades,null,2) : '0';
+    document.getElementById('ledger').textContent = (s.ledgerTail || []).join('\n');
     document.getElementById('raw').textContent = JSON.stringify(s,null,2);
   })
-  .catch(()=>{ document.getElementById('atan').textContent = 'snapshot no publicado aún'; });
+  .catch(()=>{
+    document.getElementById('atan').textContent = 'snapshot no publicado aún';
+  });
 </script>
 </body>
 </html>
