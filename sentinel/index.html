@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SENTINEL — ATANATUS</title>
+  <link rel="icon" href="/ATAN_LOGO_OFICIAL.png">
+  <style>
+    body{margin:0;background:#050505;color:#f5f5f5;font-family:Arial,Helvetica,sans-serif}
+    main{max-width:880px;margin:auto;padding:48px 22px}
+    h1{letter-spacing:.18em;font-weight:600}
+    .latin{color:#8d5cff;font-family:Georgia,serif;font-style:italic;letter-spacing:.12em}
+    .muted{color:#bdbdbd}
+    a{color:#c5aaff}
+    code{color:#c5aaff;word-break:break-all}
+    .card{border:1px solid #444;padding:18px 16px;margin:16px 0}
+    .ok{color:#8d5cff}
+    .warn{color:#bdbdbd}
+    dt{color:#bdbdbd;margin-top:10px}
+    dd{margin:4px 0 0}
+  </style>
+</head>
+<body>
+<main>
+  <h1>SENTINEL</h1>
+  <p class="latin">NON OMNIS MORIAR</p>
+  <p class="muted">Máquina autónoma de profit realizado. No es un bot de compra discrecional de ATAN.</p>
+
+  <div class="card">
+    <strong>Compras ATAN por esta máquina:</strong>
+    <div id="atan">0</div>
+    <p class="muted">Deshabilitado hasta documentar el puente en público.</p>
+  </div>
+
+  <div class="card">
+    <dl>
+      <dt>Policy</dt><dd id="policy">—</dd>
+      <dt>Supervisor</dt><dd id="sup">—</dd>
+      <dt>Profit producido (USDC)</dt><dd id="produced">—</dd>
+      <dt>Pendiente de empaquetar</dt><dd id="pending">—</dd>
+      <dt>Tesorería BCH</dt><dd id="bch">—</dd>
+      <dt>Próximo lote on-chain</dt><dd id="next">HOLD</dd>
+      <dt>Destino Cauldron</dt><dd><code>qregcetfxf475kzvj0t0aeks9szvpy0r0yrmxue4ea</code></dd>
+      <dt>Umbral retiro (est.)</dt><dd>mín ~0.002 BCH + fee ~0.0002 BCH · red nativa</dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <p>Por qué verás tamaños repetidos: el motor trabaja en lotes fijos (ahora 0.01 USDC → BCH). Cuando existan compras ATAN, serán el mismo patrón mecánico, no entradas “a ojo”.</p>
+    <p class="muted">Capital operativo ≠ profit ≠ tesorería BCH ≠ ATAN hold ≠ ATAN LP.</p>
+  </div>
+
+  <p class="muted">Identidad del token: <a href="https://atanatus.com/token.html">atanatus.com/token.html</a></p>
+  <pre id="raw" class="muted"></pre>
+</main>
+<script>
+fetch('snapshot.json',{cache:'no-store'})
+  .then(r=>r.json())
+  .then(s=>{
+    document.getElementById('atan').textContent = s.atanBuys;
+    document.getElementById('policy').textContent = s.policy;
+    document.getElementById('sup').textContent = (s.supervisor.status||'')+' '+s.supervisor.running+'/'+s.supervisor.expected;
+    document.getElementById('produced').textContent = s.treasury.producedUsdc;
+    document.getElementById('pending').textContent = s.treasury.pendingUsdc;
+    document.getElementById('bch').textContent = s.treasury.bchTreasury;
+    document.getElementById('next').textContent = s.nextLot;
+    document.getElementById('raw').textContent = JSON.stringify(s,null,2);
+  })
+  .catch(()=>{ document.getElementById('atan').textContent = 'snapshot no publicado aún'; });
+</script>
+</body>
+</html>
