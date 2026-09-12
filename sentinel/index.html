@@ -23,8 +23,17 @@
 <main>
   <h1>SENTINEL</h1>
   <p class="latin">NON OMNIS MORIAR</p>
-  <p>Sentinel is a local ATANATUS machine. It earns USDC through small rotations on Binance Convert, converts that profit to BCH and, later, will use that BCH on Cauldron to <strong>hold ATAN</strong> or <strong>LP ATAN</strong> in fixed batches.</p>
-  <p class="muted">It is not a person buying “whenever they feel like it.” If you see 5 identical purchases, that is the machine's batch size.</p>
+
+  <p>
+    Sentinel is a local ATANATUS machine. It earns USDC through small rotations
+    on Binance Convert, converts that profit to BCH and, later, will use that BCH
+    on Cauldron to <strong>hold ATAN</strong> or <strong>LP ATAN</strong> in fixed batches.
+  </p>
+
+  <p class="muted">
+    It is not a person buying “whenever they feel like it.”
+    If you see 5 identical purchases, that is the machine's batch size.
+  </p>
 
   <div class="card">
     <strong>Current status</strong>
@@ -37,48 +46,134 @@
   </div>
 
   <h2>Data to verify</h2>
+
   <div class="card">
     <ul>
-      <li>Cauldron / buyer wallet:<br><code>qregcetfxf475kzvj0t0aeks9szvpy0r0yrmxue4ea</code></li>
-      <li>Network: native Bitcoin Cash (not BEP20, not ERC20)</li>
-      <li>ATAN token category / authbase:<br><code>3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b</code></li>
-      <li>Identity: <a href="https://atanatus.com/token.html">atanatus.com/token.html</a></li>
-      <li>Current internal batch: 0.01 USDC → BCH</li>
-      <li>Future on-chain batches: intentionally repeated sizes</li>
+      <li>
+        Cauldron / buyer wallet:<br>
+        <code>qregcetfxf475kzvj0t0aeks9szvpy0r0yrmxue4ea</code>
+      </li>
+
+      <li>
+        Network: native Bitcoin Cash (not BEP20, not ERC20)
+      </li>
+
+      <li>
+        ATAN token category / authbase:<br>
+        <code>3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b</code>
+      </li>
+
+      <li>
+        Identity:
+        <a href="https://atanatus.com/token.html">atanatus.com/token.html</a>
+      </li>
+
+      <li>
+        Current internal batch: 0.01 USDC → BCH
+      </li>
+
+      <li>
+        Future on-chain batches: intentionally repeated sizes
+      </li>
     </ul>
   </div>
 
   <h2>If you see identical purchases on Cauldron</h2>
+
   <ol>
-    <li>Open a BCH explorer (for example <a href="https://www.blockchair.com/bitcoin-cash">Blockchair</a> or the one used by Cauldron).</li>
-    <li>Paste the cashaddr <code>qregcetfxf475kzvj0t0aeks9szvpy0r0yrmxue4ea</code>.</li>
-    <li>Verify that the transactions come from that address, not another one.</li>
-    <li>Check the token: the ATAN category shown above, not a clone.</li>
-    <li>If the amounts are similar, that is Sentinel's batch size (odd HOLD / even LP), not five discretionary purchases.</li>
-    <li>LP: in addition to the swap, there will be a small Cauldron ATAN+BCH pool owned by that wallet. It will be listed on Cauldron / the pools API for that address.</li>
+    <li>
+      Open a BCH explorer
+      (for example
+      <a href="https://www.blockchair.com/bitcoin-cash">Blockchair</a>
+      or the one used by Cauldron).
+    </li>
+
+    <li>
+      Paste the cashaddr
+      <code>qregcetfxf475kzvj0t0aeks9szvpy0r0yrmxue4ea</code>.
+    </li>
+
+    <li>
+      Verify that the transactions come from that address, not another one.
+    </li>
+
+    <li>
+      Check the token: the ATAN category shown above, not a clone.
+    </li>
+
+    <li>
+      If the amounts are similar, that is Sentinel's batch size
+      (odd HOLD / even LP), not five discretionary purchases.
+    </li>
+
+    <li>
+      LP: in addition to the swap, there will be a small Cauldron ATAN+BCH pool
+      owned by that wallet. It will be listed on Cauldron / the pools API for
+      that address.
+    </li>
   </ol>
-  <p class="muted">Until this page lists a specific txid, any ATAN purchase is <em>not</em> from Sentinel.</p>
+
+  <p class="muted">
+    Until this page lists a specific txid, any ATAN purchase
+    <em>is not</em> from Sentinel.
+  </p>
 
   <h2>How to verify a BCH transfer (when one exists)</h2>
+
   <ol>
-    <li>This page will publish: date, net amount, txid, BCH network.</li>
-    <li>Open the txid in the explorer.</li>
-    <li>The destination must be the cashaddr shown above.</li>
-    <li>The amount will be treasury minus the Binance fee (~0.0002 BCH, minimum withdrawal ~0.002 BCH).</li>
+    <li>
+      This page will publish: date, net amount, txid, BCH network.
+    </li>
+
+    <li>
+      Open the txid in the explorer.
+    </li>
+
+    <li>
+      The destination must be the cashaddr shown above.
+    </li>
+
+    <li>
+      The amount will be treasury minus the Binance fee
+      (~0.0002 BCH, minimum withdrawal ~0.002 BCH).
+    </li>
   </ol>
 
   <h2>What cannot be seen from outside</h2>
-  <p>The micro-rotations inside Binance (Convert USDC → asset → USDC) leave no on-chain trace. Only the <em>result</em> that exits as BCH and then reaches the cashaddr can be externally verified. Sentinel does not publish API keys or operating capital.</p>
+
+  <p>
+    The micro-rotations inside Binance
+    (Convert USDC → asset → USDC) leave no on-chain trace.
+    Only the <em>result</em> that exits as BCH and then reaches the cashaddr
+    can be externally verified. Sentinel does not publish API keys
+    or operating capital.
+  </p>
 
   <h2>Fixed rules</h2>
+
   <ul>
-    <li>Profit ≠ deposit. Only confirmed closing USDC counts.</li>
-    <li>There are no discretionary ATAN purchases.</li>
-    <li>HOLD and LP alternate by complete transfer, not based on intraday discretion.</li>
-    <li>If a batch does not match this page, do not attribute it to the machine.</li>
+    <li>
+      Profit ≠ deposit. Only confirmed closing USDC counts.
+    </li>
+
+    <li>
+      There are no discretionary ATAN purchases.
+    </li>
+
+    <li>
+      HOLD and LP alternate by complete transfer,
+      not based on intraday discretion.
+    </li>
+
+    <li>
+      If a batch does not match this page,
+      do not attribute it to the machine.
+    </li>
   </ul>
 
-  <p class="muted">Policy cutoff: 12 Sep 2026. ATAN buys = 0. Withdrawals = 0.</p>
+  <p class="muted">
+    Policy cutoff: 12 Sep 2026. ATAN buys = 0. Withdrawals = 0.
+  </p>
 </main>
 </body>
 </html>
