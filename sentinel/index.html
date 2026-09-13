@@ -21,7 +21,7 @@
 </head>
 <body>
 <main>
-  <h1>SENTINEL(Under Development)</h1>
+  <h1>SENTINEL</h1>
   <p class="latin">NON OMNIS MORIAR</p>
 
   <div class="card">
@@ -35,20 +35,21 @@
       · bot <code>@CentinelaMempoolBot</code>
     </p>
     <p class="muted">
-      This page does not stream. It only explains how to verify on-chain lots
-      when they exist.
+      This page does not stream. It lists on-chain lots when they exist, and the rules
+      used before any ATAN is bought.
     </p>
   </div>
 
   <p>
     Sentinel is a local ATANATUS machine. It earns USDC through small rotations
-    on Binance Convert, converts that profit to BCH and, later, will use that BCH
-    on Cauldron to <strong>hold ATAN</strong> or <strong>LP ATAN</strong> in fixed batches.
+    on Binance Convert and packs confirmed profit into BCH.
+    That BCH may later reach Cauldron. It does not have to buy ATAN the minute it arrives.
   </p>
 
   <p class="muted">
-    It is not a person buying “whenever they feel like it.”
-    If you see 5 identical purchases, that is the machine's batch size.
+    It is not a person buying whenever they feel like it.
+    If you see several similar on-chain lots from the cashaddr below, that is a published batch,
+    not five discretionary tickets.
   </p>
 
   <div class="card">
@@ -56,61 +57,86 @@
     <ul>
       <li>ATAN purchases made by Sentinel: <strong>0</strong></li>
       <li>BCH transfers to Cauldron made by Sentinel: <strong>0</strong></li>
-      <li>Current product: profit → BCH on Binance Spot (policy BCH_100)</li>
-      <li>Next on-chain use, once activated: alternating HOLD / LP transfers</li>
+      <li>Product on Binance: profit → BCH (policy BCH_100)</li>
+      <li>On-chain mode: ACCUMULATE. First Binance minimum is not a trade.</li>
     </ul>
   </div>
 
   <h2>Data to verify</h2>
   <div class="card">
     <ul>
-      <li>Cauldron / buyer wallet:<br><code>qregcetfxf475kzvj0t0aeks9szvpy0r0yrmxue4ea</code></li>
+      <li>Sentinel Cauldron cashaddr:<br><code>qregcetfxf475kzvj0t0aeks9szvpy0r0yrmxue4ea</code></li>
       <li>Network: native Bitcoin Cash (not BEP20, not ERC20)</li>
-      <li>ATAN token category / authbase:<br><code>3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b</code></li>
+      <li>ATAN category / authbase:<br><code>3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b</code></li>
       <li>Identity: <a href="https://atanatus.com/token.html">atanatus.com/token.html</a></li>
-      <li>Cauldron: <a href="https://www.cauldron.quest">cauldron.quest</a></li>
-      <li>Current internal batch: 0.01 USDC → BCH</li>
-      <li>Future on-chain batches: intentionally repeated sizes</li>
+      <li>Cauldron swap (public pool, no login):<br>
+        <a href="https://app.cauldron.quest/swap/3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b">app.cauldron.quest/swap/…0362b</a>
+      </li>
+      <li>Active pools API:<br>
+        <a href="https://indexer.riften.net/cauldron/pool/active?token=3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b">indexer.riften.net/cauldron/pool/active?token=…</a>
+      </li>
+      <li>Internal Convert pack size: 0.01 USDC → BCH</li>
     </ul>
   </div>
+
+  <h2>How Sentinel decides on Cauldron</h2>
+  <p>
+    BCH that leaves Binance sits on the cashaddr until size and pool state allow an action
+    that does not shove the glass people already trade.
+  </p>
+  <ol>
+    <li>Withdraw txid is listed here. No txid → not Sentinel.</li>
+    <li>Below about <strong>0.01 BCH</strong> on the cashaddr: wait. The exchange minimum alone is not a buy and not an LP.</li>
+    <li>A single lot is capped at about <strong>30% of BCH already in ATAN pools</strong> on Cauldron (read the public swap page / pool API).</li>
+    <li><strong>HOLD</strong> = buy ATAN at the screen price and keep it in the Sentinel wallet. Reserve.</li>
+    <li><strong>LP</strong> = open a new micro-pool at the <em>current</em> ATAN/BCH ratio. Not a round token count chosen in advance.</li>
+    <li>If the lot would move the glass too hard, it is split or skipped.</li>
+    <li>Founder LP and Sentinel LP are different wallets. Sentinel does not use the founder passkey.</li>
+  </ol>
+  <p class="muted">
+    Waiting is an action. Spending BCH only because it arrived is not.
+  </p>
 
   <h2>Published on-chain lots</h2>
   <p class="muted">None yet. Until a txid is listed here, it is not Sentinel.</p>
 
-  <h2>If you see identical purchases on Cauldron</h2>
+  <h2>If you see ATAN buys on Cauldron</h2>
   <ol>
-    <li>Open a BCH explorer (for example <a href="https://www.blockchair.com/bitcoin-cash">Blockchair</a> or the explorer used by <a href="https://www.cauldron.quest">Cauldron</a>).</li>
-    <li>Paste the cashaddr <code>qregcetfxf475kzvj0t0aeks9szvpy0r0yrmxue4ea</code>.</li>
-    <li>Verify that the transactions come from that address, not another one.</li>
-    <li>Check the token: the ATAN category shown above, not a clone.</li>
-    <li>If the amounts are similar, that is Sentinel's batch size (odd HOLD / even LP), not five discretionary purchases.</li>
-    <li>LP: there will be a Cauldron ATAN+BCH micro-pool owned by that wallet.</li>
+    <li>Open a BCH explorer (for example <a href="https://www.blockchair.com/bitcoin-cash">Blockchair</a>).</li>
+    <li>Paste <code>qregcetfxf475kzvj0t0aeks9szvpy0r0yrmxue4ea</code>.</li>
+    <li>The spend must come from that cashaddr.</li>
+    <li>Token category must be the authbase above, not a clone.</li>
+    <li>Amount and type (HOLD or LP) must match a row in “Published on-chain lots”.</li>
+    <li>LP: a Cauldron micro-pool owned by that same cashaddr, at the market ratio of that day — check <code>/pool/active</code>.</li>
   </ol>
 
   <h2>How to verify a BCH transfer (when one exists)</h2>
   <ol>
     <li>This page will publish: date, net amount, txid, BCH network.</li>
     <li>Open the txid in the explorer.</li>
-    <li>The destination must be the cashaddr shown above.</li>
-    <li>The amount will be treasury minus the Binance fee (~0.0002 BCH, minimum withdrawal ~0.002 BCH).</li>
+    <li>Destination must be the cashaddr above (no <code>bitcoincash:</code> prefix on Binance).</li>
+    <li>Amount is treasury minus the Binance fee (~0.0002 BCH; minimum withdrawal ~0.002 BCH).</li>
   </ol>
 
   <h2>What cannot be seen from outside</h2>
   <p>
-    The micro-rotations inside Binance (Convert USDC → asset → USDC) leave no on-chain trace.
-    Watch those live on Telegram. Only BCH that later reaches the cashaddr can be verified on-chain.
-    Sentinel does not publish API keys or operating capital.
+    Binance Convert rotations (USDC → asset → USDC) leave no chain trace.
+    Watch those on Telegram. Only BCH that later reaches the cashaddr, and any later HOLD/LP from that addr,
+    can be verified on-chain. API keys and operating capital are not published.
   </p>
 
   <h2>Fixed rules</h2>
   <ul>
-    <li>Profit ≠ deposit. Only confirmed closing USDC counts.</li>
-    <li>There are no discretionary ATAN purchases.</li>
-    <li>HOLD and LP alternate by complete transfer, not based on intraday discretion.</li>
-    <li>If a batch does not match this page, do not attribute it to the machine.</li>
+    <li>Profit ≠ owner deposit. Only confirmed closing USDC is packed to BCH.</li>
+    <li>No discretionary ATAN buys.</li>
+    <li>No first-tick spend of the Binance minimum.</li>
+    <li>No LP at an invented ATAN/BCH ratio.</li>
+    <li>If a batch is not on this page, it is not the machine.</li>
   </ul>
 
-  <p class="muted">Policy cutoff: 12 Sep 2026. ATAN buys = 0. Withdrawals = 0.</p>
+  <p class="muted">
+    Policy restated 13 Sep 2026. ATAN buys = 0. Withdrawals = 0. ACCUMULATE.
+  </p>
 </main>
 </body>
 </html>
