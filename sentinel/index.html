@@ -43,9 +43,9 @@
     <ul>
       <li>MODE = <code>LIQUIDITY_ONLY</code></li>
       <li>ATAN_HOLD = 0 · PRICE_TARGET = NONE · BUYBACK = FORBIDDEN</li>
-      <li>BCH withdrawn by Sentinel = <strong>0</strong></li>
-      <li>ATAN purchased for LP = <strong>0</strong></li>
-      <li>Sentinel LP BCH / ATAN = <strong>0 / 0</strong></li>
+      <li>BCH withdrawn by Sentinel = <strong>0.00206720</strong> (net received <strong>0.00186720</strong>)</li>
+      <li>ATAN purchased for LP = <strong>see lot 1 swap</strong> (not a hold)</li>
+      <li>Sentinel LP BCH / ATAN = <strong>0 / 0</strong> (LP tx not published yet)</li>
       <li>Active Sentinel LPs = <strong>0</strong></li>
     </ul>
   </div>
@@ -54,8 +54,8 @@
   <ol>
     <li>Binance Convert: realized USDC profit only (not owner deposits).</li>
     <li>Pack to BCH on Binance.</li>
-    <li>Withdraw to an exclusive Sentinel cashaddr that starts at <strong>0</strong>.</li>
-    <li>When a lot is allowed: swap the BCH needed for ATAN, then LP ATAN+BCH at ~50/50 <em>value after</em> the swap (not 50% of coin count, not a naive half-and-half of the BCH bag).</li>
+    <li>Withdraw to an exclusive Sentinel cashaddr.</li>
+    <li>Swap the BCH needed for ATAN, then LP ATAN+BCH at ~50/50 value after the swap.</li>
     <li>Normal BCH leg ≤ 10% of ATAN-pooled BCH. Hard cap 30%. Rest stays in Sentinel treasury.</li>
     <li>If swap works and LP cannot finish: stop. No second buy. Residual ATAN is pending LP, not a hold.</li>
   </ol>
@@ -77,8 +77,23 @@
   </ul>
 
   <h2>On-chain lots</h2>
-  <p class="muted">None. Withdraw txids = 0. Swap txids = 0. LP outpoints = 0. If it is not listed here, it is not Sentinel.</p>
+  <div class="card">
+    <strong>Lot 1 — 16 Sep 2026</strong>
+    <ul>
+      <li>Kind: withdraw BCH Binance → Sentinel cashaddr</li>
+      <li>Gross: 0.00206720 BCH · fee est. 0.0002 · net 0.00186720 BCH</li>
+      <li>Dest: <code>qq2edefmr7zjdvsj9lvvwpg4hwve5jsh5v9swlur9f</code></li>
+      <li>Binance withdraw id: <code>ad14ef3aad6b4bc4bf7663ea273838e0</code></li>
+      <li>BCH txid: <code>d8bc566b6a4d43ebd42d185d608889e937a6401afd85043e5a98ee944737d6e7</code></li>
+    </ul>
+    <ul>
+      <li>Kind: swap BCH → ATAN (pending LP, not hold)</li>
+      <li>Cauldron txid: <code>3bb965b68d6a63653b7f0907dbf640fca761f9e8281ba946a99d0e9bbb52fd0a</code></li>
+    </ul>
+    <p class="muted">LP outpoint: none yet. Until an LP tx is listed here, Sentinel has no pool.</p>
+  </div>
 
+  <p class="muted">If a transfer is not listed here, it is not Sentinel.</p>
   <p class="muted">Policy FINAL 13 Sep 2026. Additive layer. ATAN works if Sentinel stops.</p>
 </main>
 </body>
