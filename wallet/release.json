@@ -1,0 +1,47 @@
+{
+    "schema":  "ATAN_WALLET_STATIC_GITHUB_V1",
+    "status":  "CANDIDATE",
+    "public_url":  "https://atanatus.com/wallet/",
+    "network":  "bitcoin-cash-mainnet",
+    "architecture":  "STATIC_BROWSER_ONLY",
+    "hosting":  "GitHub Pages",
+    "backend_required":  false,
+    "bchn_required":  false,
+    "fulcrum_required":  false,
+    "cloudflare_required":  false,
+    "dns_change_required":  false,
+    "derivation_path":  "m/44\u0027/145\u0027/0\u0027/0/0",
+    "token":  {
+                  "name":  "Atanatus",
+                  "symbol":  "ATAN",
+                  "category_id":  "3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b",
+                  "decimals":  8
+              },
+    "mainnet_js":  {
+                       "version":  "3.1.9",
+                       "source_commit":  "3fa4c54342221b412ee34a55610ac83dc1a0fff2",
+                       "official_bundle":  "https://cdn.mainnet.cash/mainnet-3.1.9.js",
+                       "local_bundle_sha256":  "56204CF1AE4B0DB4629239B6D4CAB04A9903CB44F8AB7EEA30D454702162066A"
+                   },
+    "functions":  {
+                      "create_wallet":  true,
+                      "restore_12_words":  true,
+                      "receive_bch":  true,
+                      "receive_atan":  true,
+                      "bch_balance":  true,
+                      "atan_balance":  true,
+                      "send_bch":  true,
+                      "send_atan":  true,
+                      "browser_signing":  true,
+                      "explicit_broadcast":  true
+                  },
+    "fee_abstraction":  {
+                            "production_live":  false
+                        },
+    "hashes":  {
+                   "index_sha256":  "9C504B259E362BDE1F4B45C5CFC920BB1E7FD7225C6DAFC2C7D31FA1DA760946",
+                   "styles_sha256":  "FF9A656CA13F1437C3D513918D266562032ED0811BF9F4EDE21944800CFE1404",
+                   "app_sha256":  "E1F9B245FEF088B38895055BFFEABB41889A2708060F95038A02DBAAA871A662",
+                   "mainnet_bundle_sha256":  "56204CF1AE4B0DB4629239B6D4CAB04A9903CB44F8AB7EEA30D454702162066A"
+               }
+}
