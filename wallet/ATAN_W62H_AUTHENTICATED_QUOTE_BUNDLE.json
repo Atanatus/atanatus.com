@@ -1,0 +1,47 @@
+{
+  "schema": "ATAN_FEE_V2_W62H_AUTHENTICATED_QUOTE_BUNDLE",
+  "version": "1.0.0",
+  "quote_id": "8ecf6b79f3be7cc3d9d621448f4dd4263c8e941c06c2d698e3e1b28d8abb35ec",
+  "signing_message": "ATAN_FEE_ABSTRACTION_V2_QUOTE:8ecf6b79f3be7cc3d9d621448f4dd4263c8e941c06c2d698e3e1b28d8abb35ec",
+  "signer_address": "bitcoincash:qrxkkqkshdyzvr556me77p3m7grpjppd8s68kdrmkc",
+  "request": {
+    "protocol_version": "2.0.0",
+    "network": "mainnet",
+    "token_category": "3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b",
+    "recipient": "bitcoincash:qpue0pja34hemgz7h5zexlx8n36suy74lv83kkknxv",
+    "payment_sats": "1000",
+    "fee_policy": {
+      "mode": "EXACT_COMMITTED_FEE",
+      "network_fee_sats": "689"
+    },
+    "valid_until_height": 999999,
+    "request_nonce": "W62E_PREFLIGHT_REQUEST_NONCE_NOT_LIVE",
+    "request_id": "57ad735bddb4f90ac118c991470bb3ba17878820186591bbadf55b02f2a626a0"
+  },
+  "quote": {
+    "protocol_version": "2.0.0",
+    "request_id": "57ad735bddb4f90ac118c991470bb3ba17878820186591bbadf55b02f2a626a0",
+    "network": "mainnet",
+    "sponsor_id": "ATAN_SPONSOR_PREFLIGHT",
+    "sponsor_funding_outpoint": "6fb26fc091839059480ad0d0982d1c65885d422dd8f34823d3d9e3a04129439e:4",
+    "sponsor_signer_address": "bitcoincash:qrxkkqkshdyzvr556me77p3m7grpjppd8s68kdrmkc",
+    "sponsor_token_address": "bitcoincash:zz5czug7vjtrrgjfj0a2redzkfwnv37zqgdmt46e55",
+    "sponsor_bch_change_address": "bitcoincash:qrxkkqkshdyzvr556me77p3m7grpjppd8s68kdrmkc",
+    "network_fee_sats": "689",
+    "token_cost_base": "100000000",
+    "valid_until_height": 999998,
+    "quote_nonce": "W62E_PREFLIGHT_QUOTE_NONCE_NOT_LIVE",
+    "quote_id": "8ecf6b79f3be7cc3d9d621448f4dd4263c8e941c06c2d698e3e1b28d8abb35ec",
+    "authentication": {
+      "scheme": "BCH_SIGNMESSAGE_P2PKH_V1",
+      "signer_address": "bitcoincash:qrxkkqkshdyzvr556me77p3m7grpjppd8s68kdrmkc",
+      "signature_base64": "IDgw/7YCpvWk5/hU/eEtTw9MjdVcM9TS9sC5kswvCRDCX0cwIjz+cw410eQEaLVU/BwQqqW8bBH7vadUl6LSIN8="
+    }
+  },
+  "cryptographic_authentication_validated": true,
+  "transaction_signing": false,
+  "testmempoolaccept": false,
+  "submitTransaction": false,
+  "sendrawtransaction": false,
+  "transaction_broadcast": false
+}

@@ -4,6 +4,12 @@
   <meta charset="utf-8">
 
   <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; script-src 'self' 'trusted-types-eval' 'sha256-QahzF7L3LEZKpxHMp6+6SeP2tSw2GhNSa1EGkvDsaEQ='; script-src-attr 'none'; style-src 'self' 'sha256-Fh8o5QMEHg7R6tNU5pwNOyafrB1BM6y8ykmzd3GhqXg='; style-src-attr 'none'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https: wss:; worker-src 'self' blob:; manifest-src 'self'; media-src 'none'; require-trusted-types-for 'script'; trusted-types default"
+    data-w63h-csp="ATAN_W63H_P1_R4"
+  >
+
+  <meta
     name="viewport"
     content="width=device-width,initial-scale=1"
   >
@@ -29,6 +35,8 @@
     rel="stylesheet"
     href="./styles.css"
   >
+
+  <script src="./trusted-types-bootstrap.js"></script>
 
   <script type="importmap">
   {
@@ -242,6 +250,33 @@
 
         </article>
 
+
+        <article
+          id="passkeyUnlockPanel"
+          class="panel"
+          hidden
+        >
+
+          <div class="panel-label">
+            PASSKEY · LOCAL ENCRYPTED WALLET
+          </div>
+
+          <h2>Unlock with passkey</h2>
+
+          <p id="passkeyState">
+            No passkey-protected wallet is stored on this device.
+          </p>
+
+          <button
+            id="unlockPasskey"
+            class="primary"
+            type="button"
+          >
+            Unlock with passkey
+          </button>
+
+        </article>
+
       </section>
 
 
@@ -321,6 +356,23 @@
               type="button"
             >
               Refresh
+            </button>
+
+            <button
+              id="protectPasskey"
+              class="secondary"
+              type="button"
+            >
+              Protect with passkey
+            </button>
+
+            <button
+              id="removePasskey"
+              class="ghost"
+              type="button"
+              disabled
+            >
+              Remove passkey
             </button>
 
             <button
@@ -433,7 +485,7 @@
               Network fee
               <select id="sendFeeMode">
                 <option value="BCH_STANDARD">Standard BCH fee</option>
-                <option value="ATAN_SPONSORED_SHADOW">ATAN Sponsored Fees · Shadow</option>
+                <option value="ATAN_SPONSORED_SHADOW" selected>ATAN Sponsored Fees - Unsigned atomic settlement (W62J)</option>
               </select>
             </label>
 
@@ -445,7 +497,7 @@
                 autocomplete="off"
                 spellcheck="false"
                 placeholder="bitcoincash:..."
-              >
+               value="bitcoincash:qpue0pja34hemgz7h5zexlx8n36suy74lv83kkknxv">
             </label>
 
             <label>
@@ -456,7 +508,7 @@
                 inputmode="decimal"
                 autocomplete="off"
                 placeholder="0.00000000"
-              >
+               value="0.00001000">
             </label>
 
           </div>
@@ -636,8 +688,8 @@
   data-sponsor-network-fee-bch-sats="689"
   data-sponsor-atan-received-base="100000000"
   data-atomic-same-transaction="true"
-  data-txid="6fb26fc091839059480ad0d0982d1c65885d422dd8f34823d3d9e3a04129439e"
-  data-source-certificate-sha256="13508A81A4F4DD872BE445E61FD7E63E489F5780A5DCED893E15E88F934011C4">
+  data-txid="8060a64b4a58043572ddf407d89981050b7d3066475b5430333a952ce9937d9e"
+  data-source-certificate-sha256="9CEADF6552DF6AED304704529FFAF6DB5B8359AFDE1B1DB1670144FA9318BFBA">
   <div class="atan-fee-title">
     <h2>BCH network fee paid with ATAN</h2>
     <span class="atan-fee-badge">CONFIRMED ON BCH MAINNET</span>
@@ -669,7 +721,7 @@
   </div>
 
   <div class="atan-fee-tx">
-    TXID: 6fb26fc091839059480ad0d0982d1c65885d422dd8f34823d3d9e3a04129439e
+    TXID: 8060a64b4a58043572ddf407d89981050b7d3066475b5430333a952ce9937d9e
   </div>
 </section>
 <!-- ATAN_W61I_CONFIRMED_FEE_RECEIPT_END -->

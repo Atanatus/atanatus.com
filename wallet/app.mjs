@@ -1,3 +1,5 @@
+import { createW62JUnsignedSettlementComposition } from './fee-abstraction-v2-w62j-unsigned-settlement-composer.mjs';
+
 import {
   ATAN_SPONSORED_FEE_SHADOW_MODE,
   createSponsoredFeeShadowPreview
@@ -6,6 +8,37 @@ import {
 import {
   createSponsorProtocolShadowState
 } from './fee-abstraction-v2-sponsor-shadow-controller.mjs';
+
+import {
+  createExactSponsoredFeeEnvelopeV2,
+  validateExactSponsoredFeeEnvelopeV2
+} from './fee-abstraction-v2-exact-fee-planner.mjs';
+
+import {
+  createSponsorHttpsClient
+} from './fee-abstraction-v2-sponsor-https-client.mjs';
+
+import {
+  CRYPTO_POLICY,
+  b64UrlToBytes,
+  bytesToB64Url,
+  randomBytes,
+  encryptSecretBytes,
+  decryptSecretBytes,
+  wipeBytes
+} from './passkey-wallet-crypto-core.mjs';
+
+const W62D_STAGED_SPONSOR_BASE_URL =
+  'http://127.0.0.1:18787';
+
+const W62D_PRODUCTION_SPONSOR_ORIGIN =
+  'https://sponsor.atanatus.com';
+
+const W62C_STAGED_EXACT_FEE_RATE_SATS_PER_KB =
+  '1000';
+
+const W62C_STAGED_FEE_RATE_SOURCE =
+  'CERTIFIED_CANARY_PARITY_FIXTURE_NOT_LIVE_POLICY';
 
 const ATAN_CATEGORY =
   '3c9af04021c731219908a6c1f9e900ce988d481d40463845e7f5befe61e0362b';
@@ -18,6 +51,18 @@ const BCH_CHANGE_DERIVATION_PATH =
 
 const PUBLIC_SMOKE_ADDRESS =
   'bitcoincash:qpue0pja34hemgz7h5zexlx8n36suy74lv83kkknxv';
+
+const PASSKEY_STORAGE_KEY =
+  'ATANATUS_WALLET_PASSKEY_ENVELOPE_V1';
+
+const PASSKEY_CANONICAL_ORIGIN =
+  'https://atanatus.com';
+
+const PASSKEY_CANONICAL_RPID =
+  'atanatus.com';
+
+const PASSKEY_WALLET_PATH_PREFIX =
+  '/wallet/';
 
 const $ =
   id =>
@@ -191,6 +236,790 @@ function wipeWallet(
   catch{
   }
 }
+
+
+/* ATAN_W63F_P1_PASSKEY_BLOB_START */
+
+function assertPasskeyEnvironment(){
+  if(self !== top){
+    throw new Error(
+      'PASSKEY_TOP_LEVEL_CONTEXT_REQUIRED'
+    );
+  }
+
+  if(self.isSecureContext !== true){
+    throw new Error(
+      'PASSKEY_SECURE_CONTEXT_REQUIRED'
+    );
+  }
+
+  if(
+    typeof PublicKeyCredential ===
+      'undefined' ||
+    !navigator.credentials?.create ||
+    !navigator.credentials?.get
+  ){
+    throw new Error(
+      'PASSKEY_WEBAUTHN_API_UNAVAILABLE'
+    );
+  }
+
+  const canonical =
+    location.origin ===
+      PASSKEY_CANONICAL_ORIGIN;
+
+  const local =
+    location.hostname ===
+      'localhost' ||
+    location.hostname ===
+      '127.0.0.1' ||
+    location.hostname ===
+      '[::1]';
+
+  if(
+    !canonical &&
+    !local
+  ){
+    throw new Error(
+      'PASSKEY_ORIGIN_NOT_ALLOWED'
+    );
+  }
+
+  return {
+    origin:
+      location.origin,
+
+    rpId:
+      canonical
+        ? PASSKEY_CANONICAL_RPID
+        : location.hostname
+  };
+}
+
+
+function validateStoredPasskeyEnvelope(
+  envelope
+){
+  if(
+    !envelope ||
+    envelope.schema !==
+      CRYPTO_POLICY.schema ||
+    envelope.version !==
+      1
+  ){
+    throw new Error(
+      'PASSKEY_ENVELOPE_SCHEMA_INVALID'
+    );
+  }
+
+  for(
+    const value of [
+      envelope?.binding?.origin,
+      envelope?.binding?.rpId,
+      envelope?.binding?.walletPathPrefix,
+      envelope?.binding?.credentialId,
+      envelope?.kdf?.prfInput,
+      envelope?.kdf?.hkdfSalt,
+      envelope?.cipher?.iv,
+      envelope?.cipher?.ciphertext
+    ]
+  ){
+    if(
+      typeof value !==
+        'string' ||
+      value.length < 1
+    ){
+      throw new Error(
+        'PASSKEY_ENVELOPE_REQUIRED_FIELD_INVALID'
+      );
+    }
+  }
+
+  return envelope;
+}
+
+
+function readStoredPasskeyEnvelope(){
+  const serialized =
+    localStorage.getItem(
+      PASSKEY_STORAGE_KEY
+    );
+
+  if(serialized === null){
+    return null;
+  }
+
+  let envelope =
+    null;
+
+  try{
+    envelope =
+      JSON.parse(
+        serialized
+      );
+  }
+  catch{
+    throw new Error(
+      'PASSKEY_ENVELOPE_JSON_INVALID'
+    );
+  }
+
+  return validateStoredPasskeyEnvelope(
+    envelope
+  );
+}
+
+
+function persistPasskeyEnvelope(
+  envelope
+){
+  validateStoredPasskeyEnvelope(
+    envelope
+  );
+
+  const serialized =
+    JSON.stringify(
+      envelope
+    );
+
+  if(
+    serialized.length >
+      32768
+  ){
+    throw new Error(
+      'PASSKEY_ENVELOPE_TOO_LARGE'
+    );
+  }
+
+  localStorage.setItem(
+    PASSKEY_STORAGE_KEY,
+    serialized
+  );
+}
+
+
+function removeStoredPasskeyEnvelope(){
+  localStorage.removeItem(
+    PASSKEY_STORAGE_KEY
+  );
+}
+
+
+function refreshPasskeyUi(){
+  let stored =
+    false;
+
+  let corrupt =
+    false;
+
+  try{
+    stored =
+      readStoredPasskeyEnvelope() !==
+        null;
+  }
+  catch{
+    corrupt =
+      true;
+  }
+
+  const panel =
+    $('passkeyUnlockPanel');
+
+  if(panel){
+    panel.hidden =
+      !stored &&
+      !corrupt;
+  }
+
+  const unlock =
+    $('unlockPasskey');
+
+  if(unlock){
+    unlock.disabled =
+      !stored ||
+      corrupt;
+  }
+
+  const protect =
+    $('protectPasskey');
+
+  if(protect){
+    protect.disabled =
+      !state.wallet ||
+      stored ||
+      corrupt;
+
+    protect.textContent =
+      stored
+        ? 'Passkey protection enabled'
+        : 'Protect with passkey';
+  }
+
+  const remove =
+    $('removePasskey');
+
+  if(remove){
+    remove.disabled =
+      !stored &&
+      !corrupt;
+  }
+
+  setText(
+    'passkeyState',
+    corrupt
+      ? 'Encrypted wallet data is present but invalid. Remove it before creating new passkey protection.'
+      : stored
+        ? 'Passkey-protected wallet data is stored locally on this device.'
+        : 'No passkey-protected wallet is stored on this device.'
+  );
+}
+
+
+async function createWalletPasskey(
+  prfInput,
+  rpId
+){
+  const userId =
+    randomBytes(32);
+
+  const challenge =
+    randomBytes(32);
+
+  try{
+    const credential =
+      await navigator
+        .credentials
+        .create({
+          publicKey:{
+            rp:{
+              id:
+                rpId,
+              name:
+                'ATANATUS Wallet'
+            },
+
+            user:{
+              id:
+                userId,
+              name:
+                'atanatus-wallet-local',
+              displayName:
+                'ATANATUS Wallet'
+            },
+
+            challenge,
+
+            pubKeyCredParams:[
+              {
+                type:
+                  'public-key',
+                alg:
+                  -7
+              },
+              {
+                type:
+                  'public-key',
+                alg:
+                  -257
+              }
+            ],
+
+            timeout:
+              120000,
+
+            attestation:
+              'none',
+
+            authenticatorSelection:{
+              residentKey:
+                'required',
+              requireResidentKey:
+                true,
+              userVerification:
+                'required'
+            },
+
+            extensions:{
+              prf:{
+                eval:{
+                  first:
+                    prfInput
+                }
+              }
+            }
+          }
+        });
+
+    if(!credential){
+      throw new Error(
+        'PASSKEY_CREATE_NULL'
+      );
+    }
+
+    const ext =
+      credential
+        .getClientExtensionResults?.() ||
+      {};
+
+    if(
+      ext?.prf?.enabled !==
+        true &&
+      !ext?.prf?.results?.first
+    ){
+      throw new Error(
+        'PASSKEY_PRF_NOT_ENABLED'
+      );
+    }
+
+    return credential;
+  }
+  finally{
+    wipeBytes(
+      userId
+    );
+
+    wipeBytes(
+      challenge
+    );
+  }
+}
+
+
+async function requestWalletPasskeyPrf(
+  credentialRawId,
+  prfInput,
+  rpId
+){
+  const challenge =
+    randomBytes(32);
+
+  try{
+    const assertion =
+      await navigator
+        .credentials
+        .get({
+          publicKey:{
+            challenge,
+
+            rpId,
+
+            allowCredentials:[
+              {
+                type:
+                  'public-key',
+                id:
+                  credentialRawId
+              }
+            ],
+
+            userVerification:
+              'required',
+
+            timeout:
+              120000,
+
+            extensions:{
+              prf:{
+                eval:{
+                  first:
+                    prfInput
+                }
+              }
+            }
+          }
+        });
+
+    if(!assertion){
+      throw new Error(
+        'PASSKEY_ASSERTION_NULL'
+      );
+    }
+
+    const ext =
+      assertion
+        .getClientExtensionResults?.() ||
+      {};
+
+    const first =
+      ext?.prf?.results?.first;
+
+    if(!first){
+      throw new Error(
+        'PASSKEY_PRF_RESULT_MISSING'
+      );
+    }
+
+    const prfOutput =
+      new Uint8Array(
+        first
+      );
+
+    if(
+      prfOutput.byteLength !==
+        CRYPTO_POLICY.prfOutputBytes
+    ){
+      wipeBytes(
+        prfOutput
+      );
+
+      throw new Error(
+        'PASSKEY_PRF_OUTPUT_LENGTH_INVALID'
+      );
+    }
+
+    return prfOutput;
+  }
+  finally{
+    wipeBytes(
+      challenge
+    );
+  }
+}
+
+
+async function protectWalletWithPasskey(){
+  if(!state.wallet){
+    throw new Error(
+      'WALLET_LOCKED'
+    );
+  }
+
+  if(
+    readStoredPasskeyEnvelope() !==
+      null
+  ){
+    throw new Error(
+      'PASSKEY_PROTECTION_ALREADY_EXISTS_REMOVE_FIRST'
+    );
+  }
+
+  const environment =
+    assertPasskeyEnvironment();
+
+  const mnemonic =
+    normalizeMnemonic(
+      state.wallet.mnemonic
+    );
+
+  const prfInput =
+    randomBytes(
+      CRYPTO_POLICY.prfInputBytes
+    );
+
+  let credential =
+    null;
+
+  let credentialRawId =
+    null;
+
+  let prfOutput =
+    null;
+
+  let secretBytes =
+    null;
+
+  try{
+    credential =
+      await createWalletPasskey(
+        prfInput,
+        environment.rpId
+      );
+
+    credentialRawId =
+      new Uint8Array(
+        credential.rawId
+      );
+
+    if(
+      credentialRawId.byteLength <
+        1
+    ){
+      throw new Error(
+        'PASSKEY_CREDENTIAL_ID_EMPTY'
+      );
+    }
+
+    prfOutput =
+      await requestWalletPasskeyPrf(
+        credentialRawId,
+        prfInput,
+        environment.rpId
+      );
+
+    secretBytes =
+      new TextEncoder()
+        .encode(
+          mnemonic
+        );
+
+    const credentialId =
+      bytesToB64Url(
+        credentialRawId
+      );
+
+    const envelope =
+      await encryptSecretBytes({
+        secretBytes,
+        prfOutput,
+        prfInput,
+        origin:
+          environment.origin,
+        rpId:
+          environment.rpId,
+        walletPathPrefix:
+          PASSKEY_WALLET_PATH_PREFIX,
+        credentialId
+      });
+
+    if(
+      envelope.kdf.prfInput !==
+        bytesToB64Url(
+          prfInput
+        )
+    ){
+      throw new Error(
+        'PASSKEY_ENVELOPE_PRF_INPUT_BINDING_FAILED'
+      );
+    }
+
+    const serialized =
+      JSON.stringify(
+        envelope
+      );
+
+    if(
+      serialized.includes(
+        mnemonic
+      )
+    ){
+      throw new Error(
+        'PLAINTEXT_MNEMONIC_PERSISTENCE_BLOCKED'
+      );
+    }
+
+    if(
+      serialized.includes(
+        bytesToB64Url(
+          prfOutput
+        )
+      )
+    ){
+      throw new Error(
+        'PRF_OUTPUT_PERSISTENCE_BLOCKED'
+      );
+    }
+
+    persistPasskeyEnvelope(
+      envelope
+    );
+
+    refreshPasskeyUi();
+
+    setStatus(
+      'Passkey protection enabled · encrypted wallet data stored locally'
+    );
+  }
+  finally{
+    wipeBytes(
+      prfInput
+    );
+
+    if(credentialRawId){
+      wipeBytes(
+        credentialRawId
+      );
+    }
+
+    if(prfOutput){
+      wipeBytes(
+        prfOutput
+      );
+    }
+
+    if(secretBytes){
+      wipeBytes(
+        secretBytes
+      );
+    }
+  }
+}
+
+
+async function unlockWalletWithPasskey(){
+  const environment =
+    assertPasskeyEnvironment();
+
+  const envelope =
+    readStoredPasskeyEnvelope();
+
+  if(!envelope){
+    throw new Error(
+      'PASSKEY_ENVELOPE_NOT_FOUND'
+    );
+  }
+
+  if(
+    envelope.binding.origin !==
+      environment.origin
+  ){
+    throw new Error(
+      'PASSKEY_ENVELOPE_ORIGIN_MISMATCH'
+    );
+  }
+
+  if(
+    envelope.binding.rpId !==
+      environment.rpId
+  ){
+    throw new Error(
+      'PASSKEY_ENVELOPE_RPID_MISMATCH'
+    );
+  }
+
+  if(
+    envelope
+      .binding
+      .walletPathPrefix !==
+        PASSKEY_WALLET_PATH_PREFIX
+  ){
+    throw new Error(
+      'PASSKEY_ENVELOPE_WALLET_PATH_MISMATCH'
+    );
+  }
+
+  const credentialRawId =
+    b64UrlToBytes(
+      envelope
+        .binding
+        .credentialId
+    );
+
+  const prfInput =
+    b64UrlToBytes(
+      envelope
+        .kdf
+        .prfInput
+    );
+
+  if(
+    prfInput.byteLength !==
+      CRYPTO_POLICY.prfInputBytes
+  ){
+    wipeBytes(
+      credentialRawId
+    );
+
+    wipeBytes(
+      prfInput
+    );
+
+    throw new Error(
+      'PASSKEY_STORED_PRF_INPUT_LENGTH_INVALID'
+    );
+  }
+
+  let prfOutput =
+    null;
+
+  let secretBytes =
+    null;
+
+  try{
+    prfOutput =
+      await requestWalletPasskeyPrf(
+        credentialRawId,
+        prfInput,
+        environment.rpId
+      );
+
+    secretBytes =
+      await decryptSecretBytes({
+        envelope,
+        prfOutput,
+        expectedBinding:{
+          origin:
+            environment.origin,
+          rpId:
+            environment.rpId,
+          walletPathPrefix:
+            PASSKEY_WALLET_PATH_PREFIX,
+          credentialId:
+            envelope
+              .binding
+              .credentialId
+        }
+      });
+
+    const mnemonic =
+      new TextDecoder()
+        .decode(
+          secretBytes
+        );
+
+    await activateWallet(
+      mnemonic,
+      false
+    );
+
+    refreshPasskeyUi();
+
+    setStatus(
+      'Wallet unlocked with passkey'
+    );
+  }
+  finally{
+    wipeBytes(
+      credentialRawId
+    );
+
+    wipeBytes(
+      prfInput
+    );
+
+    if(prfOutput){
+      wipeBytes(
+        prfOutput
+      );
+    }
+
+    if(secretBytes){
+      wipeBytes(
+        secretBytes
+      );
+    }
+  }
+}
+
+
+function removePasskeyProtection(){
+  const stored =
+    localStorage.getItem(
+      PASSKEY_STORAGE_KEY
+    );
+
+  if(stored === null){
+    refreshPasskeyUi();
+    return;
+  }
+
+  if(
+    !confirm(
+      'Remove the locally stored encrypted wallet record? Your recovery phrase remains the ultimate recovery method.'
+    )
+  ){
+    return;
+  }
+
+  removeStoredPasskeyEnvelope();
+
+  refreshPasskeyUi();
+
+  setStatus(
+    'Passkey protection removed from this browser'
+  );
+}
+
+/* ATAN_W63F_P1_PASSKEY_BLOB_END */
 
 
 async function loadMainnet(){
@@ -378,6 +1207,8 @@ function showWallet(){
     'tokenAddress',
     state.wallet.tokenaddr
   );
+
+  refreshPasskeyUi();
 }
 
 
@@ -692,6 +1523,300 @@ function sortByTokenDesc(
   }
 
   return 0;
+}
+
+
+function sponsoredControllerEntry(
+  utxo,
+  controller,
+  derivationPath
+){
+  return {
+    utxo,
+    controller,
+    derivationPath,
+    sats:
+      utxoSats(
+        utxo
+      )
+  };
+}
+
+
+async function collectW62cSponsoredInventory(
+  paymentAmount
+){
+  if(
+    !state.wallet ||
+    !state.changeWallet
+  ){
+    throw new Error(
+      'W62C_DUAL_DERIVATION_WALLETS_REQUIRED'
+    );
+  }
+
+  const [
+    primaryUtxos,
+    changeUtxos
+  ] =
+    await Promise.all([
+      state.wallet.getUtxos(),
+      state.changeWallet.getUtxos()
+    ]);
+
+  const primaryPlain =
+    primaryUtxos
+      .filter(
+        isPlainBch
+      )
+      .map(
+        utxo =>
+          sponsoredControllerEntry(
+            utxo,
+            'USER_PRIMARY_0_0',
+            DERIVATION_PATH
+          )
+      );
+
+  const changePlain =
+    changeUtxos
+      .filter(
+        isPlainBch
+      )
+      .map(
+        utxo =>
+          sponsoredControllerEntry(
+            utxo,
+            'USER_CHANGE_0_1',
+            BCH_CHANGE_DERIVATION_PATH
+          )
+      );
+
+  const plain =
+    [
+      ...primaryPlain,
+      ...changePlain
+    ]
+      .sort(
+        (a,b) =>
+          sortBySatsDesc(
+            a.utxo,
+            b.utxo
+          )
+      );
+
+  const token =
+    primaryUtxos
+      .filter(
+        isAtan
+      )
+      .sort(
+        sortByTokenDesc
+      );
+
+  if(plain.length === 0){
+    throw new Error(
+      'W62C_NO_USER_PLAIN_BCH_INPUT_AVAILABLE'
+    );
+  }
+
+  if(token.length === 0){
+    throw new Error(
+      'W62C_NO_USER_ATAN_INPUT_AVAILABLE'
+    );
+  }
+
+  const requested =
+    BigInt(
+      paymentAmount
+    );
+
+  /*
+    Current settlement-plan module is intentionally 3-input:
+      USER_BCH + USER_TOKEN + SPONSOR_BCH
+
+    W62C therefore selects exactly ONE user BCH input.
+    If no single primary/change UTXO can carry the requested payment,
+    fail closed rather than silently changing transaction topology.
+  */
+  const selectedBch =
+    plain.find(
+      entry =>
+        entry.sats >
+        requested
+    );
+
+  if(!selectedBch){
+    throw new Error(
+      'W62C_SINGLE_USER_BCH_INPUT_INSUFFICIENT_REQUIRES_FUTURE_TOPOLOGY_EXTENSION'
+    );
+  }
+
+  const selectedToken =
+    token[0];
+
+  const allUtxos =
+    [
+      ...primaryUtxos,
+      ...changeUtxos
+    ];
+
+  return {
+    primaryUtxoCount:
+      primaryUtxos.length,
+
+    changeUtxoCount:
+      changeUtxos.length,
+
+    primaryPlainCount:
+      primaryPlain.length,
+
+    changePlainCount:
+      changePlain.length,
+
+    atanInputCount:
+      token.length,
+
+    selectedBch,
+
+    selectedToken,
+
+    selectedTokenAmountBase:
+      tokenAmount(
+        selectedToken
+      ),
+
+    selectedTokenCarrierSats:
+      utxoSats(
+        selectedToken
+      ),
+
+    allUtxos
+  };
+}
+
+
+async function getW62dSponsorTransportHealth(){
+  const client =
+    createSponsorHttpsClient({
+      baseUrl:
+        W62D_STAGED_SPONSOR_BASE_URL,
+
+      allowInsecureLoopback:
+        true
+    });
+
+  const health =
+    await client.health();
+
+  if(
+    health.payload?.ok !== true ||
+    health.payload?.mode !==
+      'W62D_NO_SIGNING_NO_BROADCAST' ||
+    health.payload?.quote_enabled !==
+      false ||
+    health.payload?.sponsor_sign_enabled !==
+      false ||
+    health.payload?.broadcast_enabled !==
+      false
+  ){
+    throw new Error(
+      'W62D_SPONSOR_HEALTH_POLICY_INVALID'
+    );
+  }
+
+  return {
+    ready:
+      true,
+
+    baseUrl:
+      client.baseUrl,
+
+    productionOrigin:
+      client.productionOrigin,
+
+    mode:
+      health.payload.mode,
+
+    quoteEnabled:
+      false,
+
+    sponsorSignEnabled:
+      false,
+
+    broadcastEnabled:
+      false
+  };
+}
+
+
+async function buildW62cExactSponsoredPreflight(
+  paymentAmount
+){
+  const inventory =
+    await collectW62cSponsoredInventory(
+      paymentAmount
+    );
+
+  const envelope =
+    await createExactSponsoredFeeEnvelopeV2({
+      user_bch_input_count:
+        1,
+
+      user_token_input_count:
+        1,
+
+      fee_rate_sats_per_kb:
+        W62C_STAGED_EXACT_FEE_RATE_SATS_PER_KB,
+
+      ordinary_output_count:
+        3,
+
+      token_output_count:
+        2,
+
+      safety_margin_bytes:
+        0
+    });
+
+  await validateExactSponsoredFeeEnvelopeV2(
+    envelope
+  );
+
+  if(
+    envelope.shape.input_count !== 3 ||
+    envelope.shape.output_count !== 5
+  ){
+    throw new Error(
+      'W62C_EXACT_FEE_TOPOLOGY_NOT_3X5'
+    );
+  }
+
+  const sponsorTransport =
+    await getW62dSponsorTransportHealth();
+
+  return {
+    inventory,
+    envelope,
+    sponsorTransport,
+    feeRateSource:
+      W62C_STAGED_FEE_RATE_SOURCE,
+
+    sponsorQuoteStatus:
+      'NOT_REQUESTED_W62D_TRANSPORT_ONLY',
+
+    settlementPlanStatus:
+      'BLOCKED_UNTIL_AUTHENTICATED_SPONSOR_QUOTE',
+
+    unsignedTransactionStatus:
+      'BLOCKED_UNTIL_SPONSOR_QUOTE_RESERVATION_AND_ACCEPTANCE',
+
+    signingAllowed:
+      false,
+
+    broadcastAllowed:
+      false
+  };
 }
 
 
@@ -1188,45 +2313,43 @@ async function prepareSend(){
     }
 
     setStatus(
-      'Building ATAN Sponsored Fees shadow previewâ€¦'
+      'Building authenticated ATAN Sponsored Fees preview...'
     );
 
     const preview =
-      createSponsoredFeeShadowPreview({
+      await createW62JUnsignedSettlementComposition({
         recipient,
         amount,
-        utxos:
-          await state.wallet
-            .getUtxos(),
+        wallet:
+          state.wallet,
+        changeWallet:
+          state.changeWallet,
+        mainnet:
+          state.mainnet,
         atanCategory:
           ATAN_CATEGORY,
-        normalizeRecipient:
-          state.mainnet
-            .toCashaddr
-      });
-
-    const sponsorProtocol =
-      await createSponsorProtocolShadowState({
-        preview,
-        atanCategory:
-          ATAN_CATEGORY
+        sponsorOrigin:
+          'http://127.0.0.1:18794'
       });
 
     state.pending = {
-      ...preview,
-      sponsorProtocol
+      feeMode:
+        'ATAN_SPONSORED_UNSIGNED_ATOMIC_SETTLEMENT',
+      ...preview
     };
 
     const lines = [
       'Bitcoin Cash mainnet',
       '',
       'Fee mode: ATAN Sponsored Fees',
-      'Stage: SHADOW MODE',
+      'Stage: UNSIGNED ATOMIC SETTLEMENT (W62J)',
       '',
       'Asset: BCH',
       'Amount: ' +
         formatFixed8(
-          preview.amount
+          BigInt(
+            preview.payment_sats
+          )
         ) +
         ' BCH',
       '',
@@ -1234,43 +2357,63 @@ async function prepareSend(){
       preview.recipient,
       '',
       'User BCH network fee target: 0 sats',
-      'Sponsor protocol: CONNECTED',
-      'Protocol version: ' +
-        sponsorProtocol.protocolVersion,
-      'Authentication: ' +
-        sponsorProtocol.authenticationScheme,
-      'Request: ' +
-        sponsorProtocol.requestStatus,
-      'Exact sponsored network fee: REQUIRED',
-      'Sponsor quote: NOT REQUESTED',
-      'ATAN fee cost: NOT QUOTED',
-      'Network fee: NOT COMMITTED',
-      '',
-      'Available ATAN: ' +
+      'Exact network fee: ' +
+        preview.network_fee_sats +
+        ' sats',
+      'ATAN fee cost: ' +
         formatFixed8(
-          preview.availableAtanBase
+          BigInt(
+            preview.token_cost_base
+          )
         ) +
         ' ATAN',
       '',
-      'Signature policy: ' +
-        preview.sighashName +
-        ' (0x' +
-        preview.sighashByte
-          .toString(16)
-          .padStart(2,'0') +
-        ')',
+      'Quote ID:',
+      preview.quote_id,
       '',
-      'Quote reservation: ' +
-        sponsorProtocol.reservationStatus,
-      'Acceptance: ' +
-        sponsorProtocol.acceptanceStatus,
-      'Settlement plan: NOT CREATED',
+      'Sponsor signer:',
+      preview.signer_address,
       '',
-      'Status: SHADOW / UNSIGNED',
-      'Signing: LOCKED',
+      'Sponsor funding:',
+      preview.sponsor_funding_outpoint,
+      '',
+      'Exact fee envelope:',
+      preview.exact_fee_envelope_id,
+      '',
+      'Max signed envelope: ' +
+        String(
+          preview.max_signed_bytes
+        ) +
+        ' bytes',
+      '',
+      'User BCH input:',
+      preview.user_bch_input_outpoint,
+      'Derivation: ' +
+        preview.user_bch_input_derivation,
+      '',
+      'User ATAN input:',
+      preview.user_token_input_outpoint,
+      'Derivation: ' +
+        preview.user_token_input_derivation,
+      '',
+      'Authenticated quote: VALID',
+      'Exact fee binding: VALID',
+      'Dual-derivation inventory: CONNECTED',
+      '',
+      'Candidate ID:',
+      preview.candidate_id,
+      '',
+      'Unsigned transaction SHA256:',
+      preview.unsigned_transaction_sha256,
+      'Unsigned transaction bytes: ' + String(preview.unsigned_transaction_bytes),
+      'Projected signed bytes: ' + String(preview.projected_signed_bytes),
+      'Pre-sign freshness revalidation: REQUIRED',
+      '',
+      'Status: COMPOSED / UNSIGNED',
+      'Transaction signing: LOCKED',
       'Broadcast: LOCKED',
       '',
-      'No sponsored transaction has been signed or broadcast.'
+      'No transaction has been signed or broadcast.'
     ];
 
     setText(
@@ -1292,7 +2435,7 @@ async function prepareSend(){
       true;
 
     broadcast.textContent =
-      'Sponsored broadcast locked (shadow)';
+      'Sponsored broadcast locked (W62J)';
 
     const result =
       $('sendResult');
@@ -1302,12 +2445,92 @@ async function prepareSend(){
         false;
 
       result.textContent =
-        'Shadow preview only Â· sponsor protocol connected; exact fee planner and live sponsor transport are not connected yet.';
+        'Authenticated sponsor quote verified in-browser. Exact fee = 689 sats; ATAN fee = 1.00000000. Preview only — signing and broadcast remain locked.';
     }
 
     setStatus(
-      'ATAN Sponsored Fees Â· shadow preview ready'
+      'ATAN Sponsored Fees - unsigned atomic settlement composed'
     );
+
+    const proofResponse =
+      await fetch(
+        '/w62j-preview-proof',
+        {
+          method:
+            'POST',
+
+          headers: {
+            'content-type':
+              'application/json'
+          },
+
+          cache:
+            'no-store',
+
+          credentials:
+            'omit',
+
+          body:
+            JSON.stringify({
+              schema:
+                'ATAN_FEE_V2_W62J_BROWSER_UNSIGNED_SETTLEMENT_PREVIEW_PROOF',
+
+              version:
+                '1.0.0',
+
+              quote_id:
+                preview.quote_id,
+
+              recipient:
+                preview.recipient,
+
+              payment_sats:
+                preview.payment_sats,
+
+              network_fee_sats:
+                preview.network_fee_sats,
+
+              token_cost_base:
+                preview.token_cost_base,
+
+              user_bch_input_derivation:
+                preview.user_bch_input_derivation,
+
+              user_token_input_derivation:
+                preview.user_token_input_derivation,
+
+              quote_authentication_valid:
+                preview.quote_authentication_valid,
+
+              exact_fee_binding_valid:
+                preview.exact_fee_binding_valid,
+
+              dual_derivation_inventory_connected:
+                preview.dual_derivation_inventory_connected,
+
+              transaction_signing:
+                false,
+
+              testmempoolaccept:
+                false,
+
+              submitTransaction:
+                false,
+
+              sendrawtransaction:
+                false,
+
+              transaction_broadcast:
+                false
+            })
+        }
+      );
+
+    if(!proofResponse.ok){
+      throw new Error(
+        'W62I_BROWSER_PROOF_SUBMISSION_FAILED'
+      );
+    }
 
     return;
   }
@@ -1687,6 +2910,8 @@ function lockWallet(){
   setStatus(
     'Wallet locked'
   );
+
+  refreshPasskeyUi();
 }
 
 
@@ -1698,6 +2923,11 @@ function wireUi(){
     'recoveryView',
     'createWallet',
     'recoverWallet',
+    'passkeyUnlockPanel',
+    'unlockPasskey',
+    'protectPasskey',
+    'removePasskey',
+    'passkeyState',
     'mnemonicInput',
     'generatedMnemonic',
     'walletAddress',
@@ -1751,6 +2981,57 @@ function wireUi(){
               .value,
             false
           );
+        }
+        catch(error){
+          setStatus(
+            error?.message ||
+              String(error),
+            false
+          );
+        }
+      }
+    );
+
+  $('unlockPasskey')
+    .addEventListener(
+      'click',
+      async () => {
+        try{
+          await unlockWalletWithPasskey();
+        }
+        catch(error){
+          setStatus(
+            error?.message ||
+              String(error),
+            false
+          );
+        }
+      }
+    );
+
+  $('protectPasskey')
+    .addEventListener(
+      'click',
+      async () => {
+        try{
+          await protectWalletWithPasskey();
+        }
+        catch(error){
+          setStatus(
+            error?.message ||
+              String(error),
+            false
+          );
+        }
+      }
+    );
+
+  $('removePasskey')
+    .addEventListener(
+      'click',
+      () => {
+        try{
+          removePasskeyProtection();
         }
         catch(error){
           setStatus(
@@ -2101,6 +3382,8 @@ async function main(){
     await loadMainnet();
 
     wireUi();
+
+    refreshPasskeyUi();
 
     document
       .documentElement

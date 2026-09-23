@@ -96,11 +96,22 @@ export async function deriveNonExtractableKek(prfOutput,hkdfSalt){
   );
 }
 
-export async function encryptSecretBytes({secretBytes,prfOutput,origin,rpId,walletPathPrefix,credentialId}){
+export async function encryptSecretBytes({secretBytes,prfOutput,prfInput,origin,rpId,walletPathPrefix,credentialId}){
   const secret = secretBytes instanceof Uint8Array ? secretBytes : new Uint8Array(secretBytes);
   if(secret.byteLength < 1) throw new Error('EMPTY_SECRET_FORBIDDEN');
 
-  const prfInput = randomBytes(CRYPTO_POLICY.prfInputBytes);
+  const effectivePrfInput =
+    prfInput === undefined
+      ? randomBytes(CRYPTO_POLICY.prfInputBytes)
+      : (
+          prfInput instanceof Uint8Array
+            ? new Uint8Array(prfInput)
+            : new Uint8Array(prfInput)
+        );
+
+  if(effectivePrfInput.byteLength !== CRYPTO_POLICY.prfInputBytes){
+    throw new Error('PRF_INPUT_LENGTH_INVALID');
+  }
   const hkdfSalt = randomBytes(CRYPTO_POLICY.hkdfSaltBytes);
   const iv = randomBytes(CRYPTO_POLICY.ivBytes);
 
@@ -133,7 +144,7 @@ export async function encryptSecretBytes({secretBytes,prfOutput,origin,rpId,wall
     kdf: {
       name: 'WebAuthn-PRF -> HKDF-SHA-256',
       hkdfInfo: CRYPTO_POLICY.hkdfInfo,
-      prfInput: bytesToB64Url(prfInput),
+      prfInput: bytesToB64Url(effectivePrfInput),
       hkdfSalt: bytesToB64Url(hkdfSalt)
     },
     cipher: {
